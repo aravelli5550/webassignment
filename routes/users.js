@@ -32,28 +32,62 @@ router.post('/register', function(req, res){
   req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
 
   var errors = req.validationErrors();
+  var invalidmessage = 'Username Already in Use'
+  var validuser ='test';
+      User.getUserByUsername(username, function(err, user){
 
-  if(errors){
-    res.render('register',{
-      errors:errors
-    });
-  } else {
-    var newUser = new User({
-      name: name,
-      email:email,
-      username: username,
-      password: password
-    });
+        if(err) throw err;
+        if(!user){
+            validuser = true;
+            if(errors){
+                res.render('register',{
+                    errors:errors
+                });
+            }
+            else {
 
-    User.createUser(newUser, function(err, user){
-      if(err) throw err;
-      console.log(user);
-    });
+                var newUser = new User({
+                    name: name,
+                    email:email,
+                    username: username,
+                    password: password
+                });
 
-    req.flash('success_msg', 'You are registered and can now login');
+                User.createUser(newUser, function(err, user){
+                    if(err) throw err;
+                    console.log(user);
+                });
 
-    res.redirect('/users/login');
-  }
+                req.flash('success_msg', 'You are registered and can now login');
+
+                res.redirect('/users/login');
+            }
+
+        }
+        else {
+            req.flash('error_msg', 'User already Exist!!!');
+            validuser = false;
+
+
+            if(errors){
+                res.render('register',{
+                    errors:errors
+                });
+            }
+            else
+            {
+
+                res.render('register');
+
+            }
+
+
+
+
+        }
+      });
+
+
 });
 
 passport.use(new LocalStrategy(
